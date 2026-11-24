@@ -1,56 +1,79 @@
 # Attack, Detect, Respond: Virtual Home Security Lab
 
-A virtual security lab I'm building from scratch to practise the full defensive cycle: **simulate an attack, detect it in a SIEM, and respond to it**, with every step documented.
+![Status](https://img.shields.io/badge/status-in%20progress-orange)
+![SIEM](https://img.shields.io/badge/SIEM-Wazuh-005571)
+![Attacker](https://img.shields.io/badge/attacker-Kali%20Linux-557C94?logo=kalilinux&logoColor=white)
+![Hypervisors](https://img.shields.io/badge/hypervisors-VMware%20%7C%20UTM-607078)
+![Framework](https://img.shields.io/badge/mapped%20to-MITRE%20ATT%26CK-C0392B)
 
-> **Status:** 🔨 In progress. Infrastructure is being built. No attack simulations yet.
+I'm building a home security lab from scratch to practise the full defensive cycle: run an attack, catch it in a SIEM, respond to it, and write it up the way a SOC analyst would. Every step is documented here, including what broke and how I fixed it.
 
----
+> **Status:** infrastructure in progress. The attacker VM and SIEM are up. No attack exercises have been run yet.
 
-## 🎯 Goals
+![Lab architecture](diagrams/lab-architecture.svg)
 
-- Build an isolated lab with a dedicated attacker, victim and SIEM
-- Collect Windows endpoint telemetry with Sysmon and send it to Wazuh
-- Run controlled attacks from Kali Linux and write detections for them
-- Document each incident like a real SOC analyst: what happened, how it was detected, and how to respond
+## How a detection works in this lab
 
-## 🗺️ Architecture
+```mermaid
+flowchart LR
+    A["Kali Linux<br/>attacker"] -->|"attack traffic"| B["Windows 11<br/>victim"]
+    B -->|"Sysmon + Windows<br/>event logs"| C["Wazuh agent"]
+    C -->|"encrypted"| D["Wazuh manager<br/>rules + decoders"]
+    D --> E["Dashboard alert"]
+    E --> F["Analyst<br/>triage + respond"]
 
-| Host | Role | Platform | Software |
-|---|---|---|---|
-| MacBook Air (Apple M5, 16 GB) | **Attacker** | UTM (QEMU, ARM64) | Kali Linux 2026.3 |
-| ASUS ROG laptop | **Defender** | VMware Workstation Pro | Ubuntu Server 24.04.5 LTS + Wazuh SIEM |
-| ASUS ROG laptop | **Victim** | VMware Workstation Pro | Windows 11 Enterprise Evaluation + Sysmon *(planned)* |
-
-The lab is designed to run on an isolated network, separate from my home network. Kali uses a temporary internet connection only for installation and updates.
-
+    classDef red fill:#F8CECC,stroke:#B85450,color:#000
+    classDef blue fill:#DAE8FC,stroke:#6C8EBF,color:#000
+    classDef green fill:#D5E8D4,stroke:#82B366,color:#000
+    classDef yellow fill:#FFF2CC,stroke:#D6B656,color:#000
+    class A red
+    class B,C blue
+    class D,E green
+    class F yellow
 ```
- [ Kali Linux ]  ──── attacks ────►  [ Windows 11 + Sysmon ]
-   (Mac / UTM)                              │
-                                            │ logs (Wazuh agent)
-                                            ▼
-                                  [ Ubuntu Server + Wazuh ]
-                                     alerts and detections
-```
 
-## ✅ Progress
+## Progress
 
 | # | Phase | Status | Write-up |
 |---|---|---|---|
-| 01 | Attacker VM: Kali Linux on Apple Silicon | ✅ Installed | [docs/01-attacker-setup.md](docs/01-attacker-setup.md) |
-| 02 | SIEM server: Ubuntu Server + Wazuh | ✅ Dashboard verified | *Write-up coming soon* |
-| 03 | Isolated lab network | 🔨 In progress | |
-| 04 | Victim VM: Windows 11 + Sysmon + Wazuh agent | ⏳ Planned | |
-| 05 | First telemetry test (Sysmon → Wazuh) | ⏳ Planned | |
-| 06 | First attack, detect and respond exercise | ⏳ Planned | |
+| 00 | Threat model and lab safety controls | Done | [00-threat-model.md](docs/00-threat-model.md) |
+| 01 | Attacker VM: Kali Linux on Apple Silicon | Installed and updated | [01-attacker-setup.md](docs/01-attacker-setup.md) |
+| 02 | SIEM server: Ubuntu Server + Wazuh | Dashboard verified | Coming soon |
+| 03 | Isolated lab network | In progress | |
+| 04 | Victim VM: Windows 11 + Sysmon + Wazuh agent | Planned | |
+| 05 | First telemetry test (Sysmon to Wazuh) | Planned | |
+| 06 | Attack exercises mapped to MITRE ATT&CK | Planned | [attack-scenarios.md](docs/attack-scenarios.md) |
 
-## 🛠️ Skills demonstrated
+## Planned attack coverage
 
-Virtualization (VMware, UTM/QEMU) · Linux administration · SIEM deployment (Wazuh) · Endpoint telemetry (Sysmon) · Network isolation · Troubleshooting · Technical documentation
+| Technique | What it looks like | Detected? |
+|---|---|---|
+| T1046 Network Service Discovery | Nmap scan from Kali | Not yet run |
+| T1110.001 Password Guessing | Hydra against SMB | Not yet run |
+| T1078 Valid Accounts | Login after a successful guess | Not yet run |
+| T1059.001 PowerShell | Remote commands over WinRM | Not yet run |
+| T1136.001 Create Local Account | Backdoor user added | Not yet run |
+| T1053.005 Scheduled Task | Persistence via `schtasks` | Not yet run |
+| T1070.001 Clear Event Logs | `wevtutil cl` to hide tracks | Not yet run |
 
-## ⚠️ Ethics and scope
+Full detail, including the Windows event IDs each one should produce, is in [attack-scenarios.md](docs/attack-scenarios.md). This table only changes when I've run the attack and have the alert to show for it.
 
-All testing is performed only on machines I own, inside an isolated lab network. Nothing in this repository targets systems I don't own or have permission to test.
+## Repository layout
+
+```
+docs/          write-ups, threat model, attack plan, workflows
+diagrams/      architecture diagram (SVG, plus the editable draw.io source)
+screenshots/   evidence referenced from the write-ups
+```
+
+## Skills this lab covers
+
+Virtualization (VMware, UTM/QEMU) · Linux administration · SIEM deployment (Wazuh) · Endpoint telemetry (Sysmon) · Threat modeling (STRIDE) · MITRE ATT&CK mapping · Incident response (NIST SP 800-61) · Network isolation · Technical documentation
+
+## Ethics and scope
+
+All testing runs only on machines I own, inside an isolated lab network. Nothing in this repository targets systems I don't own or have permission to test. The safety controls are in the [threat model](docs/00-threat-model.md).
 
 ---
 
-*Built and documented by [Stewart Ayim](https://github.com/ayimstewart): CompTIA Security+ · AWS Solutions Architect – Associate*
+Built and documented by [Stewart Ayim](https://github.com/ayimstewart) · CompTIA Security+ · AWS Solutions Architect – Associate
