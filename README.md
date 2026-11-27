@@ -8,7 +8,7 @@
 
 I'm building a home security lab from scratch to practise the full defensive cycle: run an attack, catch it in a SIEM, respond to it, and write it up the way a SOC analyst would. Every step is documented here, including what broke and how I fixed it.
 
-> **Status:** infrastructure in progress. The attacker VM and SIEM are up. No attack exercises have been run yet.
+> **Status:** The first Windows-to-Wazuh exercise is complete. I verified event collection, tested a custom rule, and triaged the resulting alert. [Read the exercise write-up](docs/02-first-lab-exercise.md). Kali-based exercises are planned.
 
 ![Lab architecture](diagrams/lab-architecture.svg)
 
@@ -38,10 +38,10 @@ flowchart LR
 |---|---|---|---|
 | 00 | Threat model and lab safety controls | Done | [00-threat-model.md](docs/00-threat-model.md) |
 | 01 | Attacker VM: Kali Linux on Apple Silicon | Installed and updated | [01-attacker-setup.md](docs/01-attacker-setup.md) |
-| 02 | SIEM server: Ubuntu Server + Wazuh | Dashboard verified | Coming soon |
-| 03 | Isolated lab network | In progress | |
-| 04 | Victim VM: Windows 11 + Sysmon + Wazuh agent | Planned | |
-| 05 | First telemetry test (Sysmon to Wazuh) | Planned | |
+| 02 | SIEM server: Ubuntu Server + Wazuh | Operational | [First exercise](docs/02-first-lab-exercise.md) |
+| 03 | VMware lab segment for Windows and Wazuh | Used for the first exercise | [First exercise](docs/02-first-lab-exercise.md) |
+| 04 | Windows 11 + Sysmon + Wazuh agent | Active during the exercise | [First exercise](docs/02-first-lab-exercise.md) |
+| 05 | First telemetry, detection, and triage exercise | Complete | [First exercise](docs/02-first-lab-exercise.md) |
 | 06 | Attack exercises mapped to MITRE ATT&CK | Planned | [attack-scenarios.md](docs/attack-scenarios.md) |
 
 ## Planned attack coverage
