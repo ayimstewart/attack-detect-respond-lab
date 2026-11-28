@@ -8,7 +8,7 @@
 
 I'm building a home security lab from scratch to practise the full defensive cycle: run an attack, catch it in a SIEM, respond to it, and write it up the way a SOC analyst would. Every step is documented here, including what broke and how I fixed it.
 
-> **Status:** The first Windows-to-Wazuh exercise is complete. I verified event collection, tested a custom rule, and triaged the resulting alert. [Read the exercise write-up](docs/02-first-lab-exercise.md). Kali-based exercises are planned.
+> **Status:** Scenario 1 (T1046, network service scan) is detected. An Nmap scan from Kali fires my custom Wazuh rule 100103. Getting there took two fixes, both documented in the [Scenario 1 write-up](docs/03-scenario-1-port-scan.md). Scenarios 2 to 7 are next.
 
 ![Lab architecture](diagrams/lab-architecture.svg)
 
@@ -32,23 +32,36 @@ flowchart LR
     class F yellow
 ```
 
+## Network design
+
+The Mac and the ROG laptop have no wired link, so attack traffic crosses my home Wi-Fi to reach the victim. The SIEM never touches the home network.
+
+| Machine | Network | Address |
+|---|---|---|
+| Kali (UTM on the Mac) | UTM Shared Network, NAT through the Mac | 192.168.64.2, seen by the victim as the Mac's home IP |
+| Windows 11 victim, NIC 1 | ADR-Lab VMware segment, no gateway | 10.77.77.20 (agent traffic to Wazuh) |
+| Windows 11 victim, NIC 2 | Bridged to home Wi-Fi, connected only during exercises | DHCP home IP (the attack target) |
+| Ubuntu + Wazuh | ADR-Lab only, never bridged | 10.77.77.10 |
+
+Scans target the victim's single home IP, never a range. The safety controls for this design are in the [threat model](docs/00-threat-model.md).
+
 ## Progress
 
 | # | Phase | Status | Write-up |
 |---|---|---|---|
-| 00 | Threat model and lab safety controls | Done | [00-threat-model.md](docs/00-threat-model.md) |
+| 00 | Threat model and lab safety controls | Done, updated for the Wi-Fi design | [00-threat-model.md](docs/00-threat-model.md) |
 | 01 | Attacker VM: Kali Linux on Apple Silicon | Installed and updated | [01-attacker-setup.md](docs/01-attacker-setup.md) |
 | 02 | SIEM server: Ubuntu Server + Wazuh | Operational | [First exercise](docs/02-first-lab-exercise.md) |
-| 03 | VMware lab segment for Windows and Wazuh | Used for the first exercise | [First exercise](docs/02-first-lab-exercise.md) |
-| 04 | Windows 11 + Sysmon + Wazuh agent | Active during the exercise | [First exercise](docs/02-first-lab-exercise.md) |
+| 03 | VMware lab segment for Windows and Wazuh | In use | [First exercise](docs/02-first-lab-exercise.md) |
+| 04 | Windows 11 + Sysmon + Wazuh agent | In use | [First exercise](docs/02-first-lab-exercise.md) |
 | 05 | First telemetry, detection, and triage exercise | Complete | [First exercise](docs/02-first-lab-exercise.md) |
-| 06 | Attack exercises mapped to MITRE ATT&CK | Planned | [attack-scenarios.md](docs/attack-scenarios.md) |
+| 06 | Attack exercises mapped to MITRE ATT&CK | In progress, 1 of 7 detected | [attack-scenarios.md](docs/attack-scenarios.md) |
 
-## Planned attack coverage
+## Attack coverage
 
 | Technique | What it looks like | Detected? |
 |---|---|---|
-| T1046 Network Service Discovery | Nmap scan from Kali | Not yet run |
+| T1046 Network Service Discovery | Nmap scan from Kali | Yes, custom rule 100103 ([write-up](docs/03-scenario-1-port-scan.md)) |
 | T1110.001 Password Guessing | Hydra against SMB | Not yet run |
 | T1078 Valid Accounts | Login after a successful guess | Not yet run |
 | T1059.001 PowerShell | Remote commands over WinRM | Not yet run |
@@ -68,11 +81,11 @@ screenshots/   evidence referenced from the write-ups
 
 ## Skills this lab covers
 
-Virtualization (VMware, UTM/QEMU) · Linux administration · SIEM deployment (Wazuh) · Endpoint telemetry (Sysmon) · Threat modeling (STRIDE) · MITRE ATT&CK mapping · Incident response (NIST SP 800-61) · Network isolation · Technical documentation
+Virtualization (VMware, UTM/QEMU) · Linux administration · SIEM deployment (Wazuh) · Detection engineering (custom Wazuh rules) · Endpoint telemetry (Sysmon, Windows auditing) · Threat modeling (STRIDE) · MITRE ATT&CK mapping · Incident response (NIST SP 800-61) · Network segmentation · Technical documentation
 
 ## Ethics and scope
 
-All testing runs only on machines I own, inside an isolated lab network. Nothing in this repository targets systems I don't own or have permission to test. The safety controls are in the [threat model](docs/00-threat-model.md).
+All testing runs only on machines I own. The victim joins my home Wi-Fi only during exercises, and every scan targets its single IP, never the home subnet. Nothing in this repository targets systems I don't own or have permission to test. The safety controls are in the [threat model](docs/00-threat-model.md).
 
 ---
 

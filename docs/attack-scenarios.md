@@ -4,7 +4,7 @@ Each exercise in this lab maps to a technique in [MITRE ATT&CK](https://attack.m
 
 | # | Scenario | ATT&CK technique | Tool (from Kali) | Expected evidence on the victim | Status |
 |---|---|---|---|---|---|
-| 1 | Network service scan | [T1046](https://attack.mitre.org/techniques/T1046/) Network Service Discovery | Nmap | Windows Filtering Platform events (Security 5156/5157) once firewall auditing is turned on | Planned |
+| 1 | Network service scan | [T1046](https://attack.mitre.org/techniques/T1046/) Network Service Discovery | Nmap | Security 5157 (connection blocked by the firewall). Windows only logs it for ports with a listener, so a full scan shows up as a few events | **Detected**, custom rule 100103 ([write-up](03-scenario-1-port-scan.md)) |
 | 2 | Password guessing against SMB | [T1110.001](https://attack.mitre.org/techniques/T1110/001/) Brute Force: Password Guessing | Hydra | Repeated failed logons, Security 4625 (logon type 3) | Planned |
 | 3 | Login with a guessed password | [T1078](https://attack.mitre.org/techniques/T1078/) Valid Accounts | NetExec | A successful logon (4624) right after a run of 4625s from the same source IP | Planned |
 | 4 | Remote PowerShell command | [T1059.001](https://attack.mitre.org/techniques/T1059/001/) Command and Scripting Interpreter: PowerShell | Evil-WinRM | Sysmon Event ID 1 (process creation) and PowerShell Script Block Logging, Event ID 4104 | Planned |
@@ -16,7 +16,7 @@ Each exercise in this lab maps to a technique in [MITRE ATT&CK](https://attack.m
 
 Each one gets its own page in `docs/` once it has been run:
 
-1. **Setup:** snapshot taken, VMs on the lab network, gateway ping fails.
+1. **Setup:** snapshot taken, the victim's bridged adapter connected, its home IP confirmed with `ipconfig`.
 2. **Attack:** the exact commands run from Kali, with timestamps.
 3. **Detection:** the Wazuh alert, its rule, and the raw Windows event behind it.
 4. **Response:** following the [incident response workflow](workflows.md): contain, recover from the snapshot, and note what I'd change.
@@ -24,7 +24,8 @@ Each one gets its own page in `docs/` once it has been run:
 
 ## Before any of this runs
 
-- [ ] Windows 11 victim built, with Sysmon and the Wazuh agent installed
-- [ ] Advanced audit policy turned on for logon events, account management, scheduled tasks and Filtering Platform connections
+- [x] Windows 11 victim built, with Sysmon and the Wazuh agent installed
+- [x] Filtering Platform Connection auditing turned on (needed for Scenario 1)
+- [ ] Advanced audit policy turned on for logon events, account management and scheduled tasks
 - [ ] PowerShell Script Block Logging turned on
-- [ ] Attacker and victim moved to the isolated lab network (see the [threat model](00-threat-model.md))
+- [x] Attack path set up: Kali reaches the victim's bridged adapter over home Wi-Fi, Wazuh stays on ADR-Lab (see the [threat model](00-threat-model.md))
